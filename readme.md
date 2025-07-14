@@ -14,3 +14,9 @@ Website: https://example.com
 5. In the modal that appears, enter the WalletConnect URI that you copied in the previous step
 6. Wait for the Safe to connect
 7. You should now see your Safe address in the app
+
+## Cloudflare Tunnel for Farcaster testing
+
+1. Install cloudflared: `npm install -g cloudflared` (or download from [cloudflare.com](https://cloudflare.com))
+2. Run the tunnel: `cloudflared tunnel --url http://localhost:3000`
+3. Use the generated public URL for Farcaster testing

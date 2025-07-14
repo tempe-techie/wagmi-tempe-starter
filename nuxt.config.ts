@@ -5,6 +5,12 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@wagmi/vue/nuxt'],
   compatibilityDate: '2025-06-21',
+  vite: {
+    server: {
+      host: '0.0.0.0',
+      allowedHosts: true
+    }
+  },
   app: {
     head: {
       meta: [

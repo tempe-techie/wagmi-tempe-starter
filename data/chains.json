@@ -1,0 +1,26 @@
+[
+  {
+    "id": 42161,
+    "name": "Arbitrum",
+    "nativeCurrency": "ETH",
+    "blockExplorer": "https://arbiscan.io"
+  },
+  {
+    "id": 1,
+    "name": "Ethereum",
+    "nativeCurrency": "ETH",
+    "blockExplorer": "https://etherscan.io"
+  },
+  {
+    "id": 10,
+    "name": "Optimism",
+    "nativeCurrency": "ETH",
+    "blockExplorer": "https://optimistic.etherscan.io"
+  },
+  {
+    "id": 8453,
+    "name": "Base",
+    "nativeCurrency": "ETH",
+    "blockExplorer": "https://basescan.org"
+  }
+]

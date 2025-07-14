@@ -18,13 +18,13 @@
         <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
           
           <li class="nav-item mb-4" data-bs-dismiss="offcanvas" aria-label="Close">
-            <NuxtLink to="/about" class="btn btn-primary">About</NuxtLink>
+            <NuxtLink to="/about" class="btn btn-primary btn-lg w-100">About</NuxtLink>
           </li>
 
           <!-- Network dropdown -->
           <li v-if="isActivated" class="nav-item dropdown mb-4">
             <button 
-              class="btn btn-primary dropdown-toggle network-dropdown" 
+              class="btn btn-primary btn-lg w-100 dropdown-toggle network-dropdown" 
               data-bs-toggle="dropdown" type="button" 
               aria-haspopup="true" aria-expanded="false"
             >{{ getCurrentNetworkName }}</button>
@@ -43,7 +43,7 @@
           <!-- Account dropdown -->
           <li v-if="isActivated" class="nav-item dropdown mb-4">
             <button 
-              class="btn btn-primary dropdown-toggle" 
+              class="btn btn-primary btn-lg w-100 dropdown-toggle" 
               data-bs-toggle="dropdown" type="button" 
               aria-haspopup="true" aria-expanded="false"
             >
@@ -53,26 +53,40 @@
             <div class="dropdown-menu dropdown-menu-end set-cursor-pointer">
               
               <a :href="getBlockExplorerBaseUrl+'/address/'+address" class="short-address text-decoration-none" target="_blank">
-                <span class="dropdown-item">
+                <span class="dropdown-item w-100">
                   {{ getShortAddress }}
                 </span>
               </a>
               
-              <span v-if="getUserBalance" class="dropdown-item">{{ getUserBalance }} {{ $config.public.chainCurrency[chainId] }}</span>
+              <span v-if="getUserBalance" class="dropdown-item w-100">{{ getUserBalance }} {{ chainCurrency[chainId] }}</span>
 
-              <span class="dropdown-item" @click="disconnect">Disconnect</span>
+              <span class="dropdown-item w-100" @click="disconnect">Disconnect</span>
             </div>
           </li>
           <!-- END Account dropdown -->
 
           <!-- Connect button -->
           <li class="nav-item mb-4" v-if="!isActivated">
-            <ConnectButton />
+            <ConnectButton customClass="btn-primary btn-lg w-100" />
           </li>
           <!-- END Connect button -->
 
+          <!-- Add to favorites button -->
           <li class="nav-item mb-4">
-            <button class="btn btn-warning" data-bs-dismiss="offcanvas" aria-label="Close">Close menu</button>
+            <button class="btn btn-success btn-lg w-100" @click="handleAddFavorite">
+              Add to favorites
+            </button>
+          </li>
+
+          <!-- Share on Farcaster button -->
+          <li class="nav-item mb-4">
+            <button class="btn btn-info btn-lg w-100" @click="handleShare">
+              Share on Farcaster
+            </button>
+          </li>
+
+          <li class="nav-item mb-4">
+            <button class="btn btn-warning btn-lg w-100" data-bs-dismiss="offcanvas" aria-label="Close">Close menu</button>
           </li>
         </ul>
       </div>
@@ -85,7 +99,9 @@
 import { getBalance, switchChain } from '@wagmi/core'
 import { useAccount, useConfig, useDisconnect } from '@wagmi/vue';
 import { formatEther } from 'viem'
-import ConnectButton from './components/ConnectButton.vue';
+import { sdk } from '@farcaster/miniapp-sdk'
+import ConnectButton from './ConnectButton.vue';
+import chainsData from '../data/chains.json'
 
 export default {
   name: "Navbar",
@@ -97,6 +113,11 @@ export default {
   data() {
     return {
       userBalanceWei: null,
+      address: null,
+      chainId: null,
+      status: null,
+      config: null,
+      disconnect: null,
     }
   },
 
@@ -106,7 +127,10 @@ export default {
     },
 
     getBlockExplorerBaseUrl() {
-      return this.$config.public.blockExplorerBaseUrl[this.chainId]
+      const blockExplorerBaseUrl = Object.fromEntries(
+        chainsData.map((chain) => [chain.id, chain.blockExplorer]),
+      )
+      return blockExplorerBaseUrl[this.chainId]
     },
 
     getCurrentNetworkName() {
@@ -114,7 +138,10 @@ export default {
     },
 
     getNetworks() {
-      return this.$config.public.supportedChains;
+      return chainsData.map((chain) => ({
+        chainId: chain.id,
+        networkName: chain.name,
+      }))
     },
 
     getShortAddress() {
@@ -133,6 +160,10 @@ export default {
 
       return null;
     },
+
+    chainCurrency() {
+      return Object.fromEntries(chainsData.map((chain) => [chain.id, chain.nativeCurrency]))
+    },
   },
 
   methods: {
@@ -141,41 +172,100 @@ export default {
     },
 
     fetchNetworkName(networkId) {
-      const network = this.$config.public.supportedChains.find(
-        chain => chain.chainId === Number(networkId)
-      );
-      
-      return network ? network.networkName : "Unsupported network";
+      const supportedChains = chainsData.map((chain) => ({
+        chainId: chain.id,
+        networkName: chain.name,
+      }))
+      const network = supportedChains.find((chain) => chain.chainId === Number(networkId))
+      return network ? network.networkName : 'Unsupported network'
+    },
+
+    async updateBalance() {
+      if (this.address) {
+        const userBalanceData = await getBalance(this.config, { address: this.address })
+        this.userBalanceWei = userBalanceData.value
+      }
+    },
+
+    async handleAddFavorite() {
+      try {
+        const result = await sdk.actions.addFrame()
+        console.log('Add to favorites result:', result)
+        // Handle the result based on what the SDK returns
+        if (result) {
+          console.log('Added to favorites!')
+        }
+      } catch (err) {
+        console.error('Error adding frame:', err)
+      }
+    },
+
+    async handleShare() {
+      try {
+        await sdk.actions.composeCast({
+          text: 'Check out Wagmi Tempe Starter - A starter template for building Web3 applications with Wagmi and Nuxt! 💸',
+          embeds: [window.location.href],
+        })
+      } catch (err) {
+        console.error('Error sharing:', err)
+      }
     },
   },
 
-  setup() {
+  watch: {
+    address: {
+      handler(newAddress) {
+        if (newAddress) {
+          this.updateBalance()
+        }
+      },
+      immediate: true,
+    },
+    chainId: {
+      handler() {
+        if (this.address) {
+          this.updateBalance()
+        }
+      },
+      immediate: true,
+    },
+  },
+
+  mounted() {
+    // Initialize wagmi composables
     const { address, chainId, status } = useAccount()
     const config = useConfig()
     const { disconnect } = useDisconnect()
 
-    return {
-      address,
-      chainId,
-      config,
-      disconnect,
-      status,
-    }
+    // Set up reactive watchers for wagmi state
+    this.$watch(
+      () => address.value,
+      (newAddress) => {
+        this.address = newAddress
+      },
+      { immediate: true },
+    )
+
+    this.$watch(
+      () => chainId.value,
+      (newChainId) => {
+        this.chainId = newChainId
+      },
+      { immediate: true },
+    )
+
+    this.$watch(
+      () => status.value,
+      (newStatus) => {
+        this.status = newStatus
+      },
+      { immediate: true },
+    )
+
+    // Store config and disconnect function
+    this.config = config
+    this.disconnect = disconnect
   },
-
-  watch: {
-    async address(newAddress) {
-      const userBalanceData = await getBalance(this.config, { address: newAddress })
-      this.userBalanceWei = userBalanceData.value
-    },
-
-    async chainId() {
-      if (this.address) { 
-        const userBalanceData = await getBalance(this.config, { address: this.address })
-        this.userBalanceWei = userBalanceData.value
-      }
-    }
-  }
 }
 </script>
 

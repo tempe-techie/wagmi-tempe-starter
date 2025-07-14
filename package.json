@@ -11,12 +11,17 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@farcaster/miniapp-sdk": "latest",
+    "@farcaster/miniapp-wagmi-connector": "latest",
     "@popperjs/core": "^2.11.8",
-    "@tanstack/vue-query": ">=5.45.0",
+    "@tanstack/vue-query": ">=5.83.0",
     "@wagmi/vue": "latest",
-    "nuxt": "^3.11.2",
+    "nuxt": "^3.17.7",
     "viem": "latest",
-    "vue": ">=3.4.21",
-    "vue-router": "^4.3.2"
+    "vue": "^3.5.17",
+    "vue-router": "^4.5.1"
+  },
+  "overrides": {
+    "uuid": "^8.3.2"
   }
 }

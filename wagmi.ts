@@ -1,3 +1,4 @@
+import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector'
 import { http, cookieStorage, createConfig, createStorage } from '@wagmi/vue'
 import { mainnet, optimism, base, arbitrum } from '@wagmi/vue/chains'
 import { injected, metaMask, walletConnect } from '@wagmi/vue/connectors'
@@ -10,6 +11,7 @@ export const config = createConfig({
     walletConnect({
       projectId: import.meta.env.VITE_WC_PROJECT_ID,
     }),
+    farcasterMiniApp(),
   ],
   storage: createStorage({
     storage: cookieStorage,

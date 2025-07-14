@@ -1,0 +1,22 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "miniapp": {
+    "version": "0.0.1",
+    "name": "Wagmi Tempe Starter",
+    "subtitle": "A starter template for building Web3 applications with Wagmi and Nuxt",
+    "buttonTitle": "A starter template for building Web3 applications with Wagmi and Nuxt",
+    "description": "A starter template for building Web3 applications with Wagmi and Nuxt",
+    "tags": ["send", "token", "transfer", "domain", "name"],
+    "primaryCategory": "utility",
+    "homeUrl": "https://wagmi-tempe-starter.vercel.app",
+    "iconUrl": "https://wagmi-tempe-starter.vercel.app/img/logo-200.png",
+    "heroImageUrl": "https://wagmi-tempe-starter.vercel.app/img/hero.png",
+    "imageUrl": "https://wagmi-tempe-starter.vercel.app/img/share.png",
+    "splashImageUrl": "https://wagmi-tempe-starter.vercel.app/img/logo-200.png",
+    "splashBackgroundColor": "#002b36"
+  }
+}
