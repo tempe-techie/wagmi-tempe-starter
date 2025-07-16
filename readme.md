@@ -4,6 +4,14 @@ A starter template for Wagmi Nuxt projects
 
 Website: https://example.com
 
+## World MiniKit
+
+Using World MiniKit library is optional. If you have a World app, then install the mini kit:
+
+```bash
+npm i @worldcoin/minikit-js
+```
+
 ## How to connect your Safe to the app
 
 0. Make sure you have WalletConnect project ID in environment variables (check example.env to see how)

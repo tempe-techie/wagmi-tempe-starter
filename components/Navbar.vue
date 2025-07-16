@@ -72,14 +72,14 @@
           <!-- END Connect button -->
 
           <!-- Add to favorites button -->
-          <li class="nav-item mb-4">
+          <li v-if="isFarcasterEnvironment" class="nav-item mb-4">
             <button class="btn btn-success btn-lg w-100" @click="handleAddFavorite">
               Add to favorites
             </button>
           </li>
 
           <!-- Share on Farcaster button -->
-          <li class="nav-item mb-4">
+          <li v-if="isFarcasterEnvironment" class="nav-item mb-4">
             <button class="btn btn-info btn-lg w-100" @click="handleShare">
               Share on Farcaster
             </button>
@@ -102,6 +102,7 @@ import { formatEther } from 'viem'
 import { sdk } from '@farcaster/miniapp-sdk'
 import ConnectButton from './ConnectButton.vue';
 import chainsData from '../data/chains.json'
+import { useWeb3 } from '../composables/useWeb3'
 
 export default {
   name: "Navbar",
@@ -118,12 +119,17 @@ export default {
       status: null,
       config: null,
       disconnect: null,
+      environment: 'standard',
     }
   },
 
   computed: {
     isActivated() {
       return this.status === 'connected'
+    },
+
+    isFarcasterEnvironment() {
+      return this.environment === 'farcaster'
     },
 
     getBlockExplorerBaseUrl() {
@@ -237,6 +243,9 @@ export default {
     const config = useConfig()
     const { disconnect } = useDisconnect()
 
+    // Initialize Web3 environment
+    const { environment } = useWeb3()
+
     // Set up reactive watchers for wagmi state
     this.$watch(
       () => address.value,
@@ -258,6 +267,14 @@ export default {
       () => status.value,
       (newStatus) => {
         this.status = newStatus
+      },
+      { immediate: true },
+    )
+
+    this.$watch(
+      () => environment.value,
+      (newEnvironment) => {
+        this.environment = newEnvironment
       },
       { immediate: true },
     )
