@@ -1,16 +1,11 @@
 # Wagmi Tempe Starter
 
-A starter template for Wagmi Nuxt projects
+A web3 starter template which uses the following stack:
 
-Website: https://example.com
-
-## World MiniKit
-
-Using World MiniKit library is optional. If you have a World app, then install the mini kit:
-
-```bash
-npm i @worldcoin/minikit-js
-```
+- Nuxt
+- Wagmi
+- Farcaster (optional, suitable for mini apps)
+- Bootstrap
 
 ## How to connect your Safe to the app
 
@@ -28,3 +23,19 @@ npm i @worldcoin/minikit-js
 1. Install cloudflared: `npm install -g cloudflared` (or download from [cloudflare.com](https://cloudflare.com))
 2. Run the tunnel: `cloudflared tunnel --url http://localhost:3000`
 3. Use the generated public URL for Farcaster testing
+
+## WalletConnect
+
+If you want WalletConnect support, make sure to copy `.env.example` in to `.env` and enter your WalletConnect project ID into `VITE_WC_PROJECT_ID`.
+
+If you don't want to use WC, then you can remove it from `wagmi.ts` and `/components/ConnectButton.vue`.
+
+## World MiniKit
+
+World MiniKit is not natively supported in this project, but you can implement it yourself by installing `@worldcoin/minikit-js` library and adapting the code, more precisely in files:
+
+- /components/ConnectButton.vue
+- /composables/useAccountData.ts
+- /composables/useWeb3.ts
+
+And maybe in some others too.
