@@ -13,12 +13,12 @@
           <!-- Show wallet info when connected -->
           <div v-if="isActivated">
             <h5 class="card-title">Wallet Connected</h5>
-            <p class="card-text"><strong>Address:</strong> {{ getShortAddress }}</p>
-            <p class="card-text" v-if="getUserBalance">
-              <strong>Balance:</strong> {{ getUserBalance }} {{ chainCurrency[chainId] }}
+            <p class="card-text"><strong>Address:</strong> {{ addressShort }}</p>
+            <p class="card-text" v-if="balanceEth">
+              <strong>Balance:</strong> {{ balanceEth }} {{ chainCurrency[chainId] }}
             </p>
-            <p class="card-text" v-if="getCurrentNetworkName">
-              <strong>Network:</strong> {{ getCurrentNetworkName }}
+            <p class="card-text" v-if="networkName">
+              <strong>Network:</strong> {{ networkName }}
             </p>
           </div>
 
@@ -35,120 +35,45 @@
 </template>
 
 <script>
-import { getBalance } from '@wagmi/core'
-import { useAccount, useConfig } from '@wagmi/vue'
-import { formatEther } from 'viem'
+import { computed } from 'vue'
 import ConnectButton from '@/components/ConnectButton.vue'
 import chainsData from '@/data/chains.json'
+import { useAccountData } from '@/composables/useAccountData'
 
 export default {
   name: 'Home',
   components: {
     ConnectButton,
   },
-  data() {
-    return {
-      userBalanceWei: null,
-      address: null,
-      chainId: null,
-      status: null,
-      config: null,
-    }
-  },
-  computed: {
-    isActivated() {
-      return this.status === 'connected'
-    },
-    getCurrentNetworkName() {
-      return this.fetchNetworkName(this.chainId)
-    },
-    getShortAddress() {
-      if (this.address) {
-        return this.address.slice(0, 6) + '...' + this.address.slice(-4)
-      }
-      return null
-    },
-    getUserBalance() {
-      if (this.userBalanceWei) {
-        const balance = formatEther(Number(this.userBalanceWei))
-        return parseFloat(Number(balance).toFixed(4))
-      }
-      return null
-    },
-    chainCurrency() {
+  setup() {
+    const {
+      address,
+      addressShort,
+      balanceWei,
+      chainId,
+      isActivated,
+      networkName,
+      balanceEth,
+    } = useAccountData()
+
+    // Computed properties
+    const chainCurrency = computed(() => {
       return Object.fromEntries(chainsData.map((chain) => [chain.id, chain.nativeCurrency]))
-    },
-  },
-  methods: {
-    fetchNetworkName(networkId) {
-      const supportedChains = chainsData.map((chain) => ({
-        chainId: chain.id,
-        networkName: chain.name,
-      }))
-      const network = supportedChains.find((chain) => chain.chainId === Number(networkId))
-      return network ? network.networkName : 'Unsupported network'
-    },
-    async updateBalance() {
-      if (this.address && this.config) {
-        try {
-          const userBalanceData = await getBalance(this.config, { address: this.address })
-          this.userBalanceWei = userBalanceData.value
-        } catch (error) {
-          console.error('Failed to fetch balance:', error)
-        }
-      }
-    },
-  },
-  watch: {
-    address: {
-      handler(newAddress) {
-        if (newAddress) {
-          this.updateBalance()
-        }
-      },
-      immediate: true,
-    },
-    chainId: {
-      handler() {
-        if (this.address) {
-          this.updateBalance()
-        }
-      },
-      immediate: true,
-    },
-  },
-  mounted() {
-    // Initialize wagmi composables
-    const { address, chainId, status } = useAccount()
-    const config = useConfig()
+    })
 
-    // Set up reactive watchers for wagmi state
-    this.$watch(
-      () => address.value,
-      (newAddress) => {
-        this.address = newAddress
-      },
-      { immediate: true },
-    )
-
-    this.$watch(
-      () => chainId.value,
-      (newChainId) => {
-        this.chainId = newChainId
-      },
-      { immediate: true },
-    )
-
-    this.$watch(
-      () => status.value,
-      (newStatus) => {
-        this.status = newStatus
-      },
-      { immediate: true },
-    )
-
-    // Store config
-    this.config = config
+    return {
+      // Account data from composable
+      address,
+      addressShort,
+      balanceWei,
+      chainId,
+      isActivated,
+      networkName,
+      balanceEth,
+      
+      // Computed properties
+      chainCurrency,
+    }
   },
 }
 </script>

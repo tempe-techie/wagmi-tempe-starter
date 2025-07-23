@@ -1,19 +1,18 @@
 // composables/useWeb3.ts
-import { ref, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import {
-  useAccount,
-  useBalance,
-  useChainId,
   useReadContract,
   useWriteContract,
   useSendTransaction,
   useSignMessage,
-  useSignTypedData
+  useSignTypedData,
+  useConfig,
 } from '@wagmi/vue'
-import { parseEther, formatEther } from 'viem'
+import { parseEther } from 'viem'
 
 export function useWeb3() {
   const environment = ref<'standard' | 'farcaster'>('standard')
+  const config = useConfig()
 
   // Lazy detection function that checks environment when needed
   function getCurrentEnvironment(): 'standard' | 'farcaster' {
@@ -31,48 +30,6 @@ export function useWeb3() {
   // Initial detection when composable is mounted
   environment.value = getCurrentEnvironment()
 
-  const { address, isConnected } = useAccount()
-  const chainId = useChainId()
-  const { data: balanceData } = useBalance({ address })
-
-  // Function to get current user's address based on environment
-  function getCurrentUserAddress(): string | null {
-    const currentEnv = getCurrentEnvironment()
-    
-    if (currentEnv === 'farcaster') {
-      // In Farcaster environment, use the connected address
-      return address.value || null
-    } else {
-      // In standard environment, use the connected address
-      return address.value || null
-    }
-  }
-
-  // Function to get current chain ID based on environment
-  function getCurrentChainId(): number {
-    // For standard and Farcaster environments, use the connected chain ID
-    return chainId.value || 1
-  }
-
-  // Function to get native balance based on environment
-  async function getNativeBalance(): Promise<string | null> {
-    const currentEnv = getCurrentEnvironment()
-    const walletAddress = getCurrentUserAddress()
-    
-    if (!walletAddress) {
-      console.warn('No wallet address available. User may need to complete wallet authentication first.')
-      return null
-    }
-    
-    try {
-      // For standard and Farcaster environments, use the connected balance
-      return balanceData.value?.formatted || null
-    } catch (error) {
-      console.error('Failed to get native balance:', error)
-      return null
-    }
-  }
-
   async function sendNativeCoin(to: string, amountEth: string) {
     // Use sendTransaction for all environments
     const { sendTransactionAsync } = useSendTransaction()
@@ -82,15 +39,52 @@ export function useWeb3() {
     })
   }
 
-  async function readData(config: any) {
-    const { data } = useReadContract(config)
-    return data
+  async function readData(contractConfig: any) {
+    // Merge the contract config with the wagmi config
+    const fullConfig = {
+      ...contractConfig,
+      config,
+    }
+    
+    const { data, isError, error } = useReadContract(fullConfig)
+    
+    // Wait for the data to be available
+    await new Promise((resolve) => {
+      const unwatch = watch(data, (newData) => {
+        if (newData !== undefined) {
+          unwatch()
+          resolve(newData)
+        }
+      }, { immediate: true })
+      
+      // Also watch for errors
+      const unwatchError = watch(isError, (hasError) => {
+        if (hasError) {
+          unwatch()
+          unwatchError()
+          resolve(null)
+        }
+      }, { immediate: true })
+    })
+    
+    if (isError.value) {
+      console.error('Contract read error:', error.value)
+      return null
+    }
+    
+    return data.value
   }
 
-  async function writeData(config: any) {
+  async function writeData(contractConfig: any) {
+    // Merge the contract config with the wagmi config
+    const fullConfig = {
+      ...contractConfig,
+      config,
+    }
+    
     // Use writeContract for all environments
     const { writeContractAsync } = useWriteContract()
-    return await writeContractAsync(config)
+    return await writeContractAsync(fullConfig)
   }
 
   async function signMessage(message: string) {
@@ -123,14 +117,14 @@ export function useWeb3() {
   }
 
   return {
-    environment,
-    getCurrentUserAddress,
-    getCurrentChainId,
-    getNativeBalance,
-    sendNativeCoin,
+    // Environment
+    environment: computed(() => getCurrentEnvironment()),
+    
+    // Web3-specific methods
     readData,
-    writeData,
+    sendNativeCoin,
     signMessage,
     signTypedData,
+    writeData,
   }
 }

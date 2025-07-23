@@ -27,7 +27,7 @@
               class="btn btn-primary btn-lg w-100 dropdown-toggle network-dropdown" 
               data-bs-toggle="dropdown" type="button" 
               aria-haspopup="true" aria-expanded="false"
-            >{{ getCurrentNetworkName }}</button>
+            >{{ accountData.networkName }}</button>
 
             <div class="dropdown-menu p-2 dropdown-menu-end set-cursor-pointer">
               <span 
@@ -47,20 +47,20 @@
               data-bs-toggle="dropdown" type="button" 
               aria-haspopup="true" aria-expanded="false"
             >
-              {{ getShortAddress }}
+              {{ accountData.addressShort }}
             </button>
 
             <div class="dropdown-menu dropdown-menu-end set-cursor-pointer">
               
-              <a :href="getBlockExplorerBaseUrl+'/address/'+address" class="short-address text-decoration-none" target="_blank">
+              <a :href="getBlockExplorerBaseUrl+'/address/'+accountData.address" class="short-address text-decoration-none" target="_blank">
                 <span class="dropdown-item w-100">
-                  {{ getShortAddress }}
+                  {{ accountData.addressShort }}
                 </span>
               </a>
               
-              <span v-if="getUserBalance" class="dropdown-item w-100">{{ getUserBalance }} {{ chainCurrency[chainId] }}</span>
+              <span v-if="accountData.balanceEth" class="dropdown-item w-100">{{ accountData.balanceEth }} {{ chainCurrency[accountData.chainId] }}</span>
 
-              <span class="dropdown-item w-100" @click="disconnect">Disconnect</span>
+              <span class="dropdown-item w-100" @click="accountData.disconnect">Disconnect</span>
             </div>
           </li>
           <!-- END Account dropdown -->
@@ -96,13 +96,11 @@
 </template>
 
 <script>
-import { getBalance, switchChain } from '@wagmi/core'
-import { useAccount, useConfig, useDisconnect } from '@wagmi/vue';
-import { formatEther } from 'viem'
 import { sdk } from '@farcaster/miniapp-sdk'
 import ConnectButton from './ConnectButton.vue';
 import chainsData from '../data/chains.json'
 import { useWeb3 } from '../composables/useWeb3'
+import { useAccountData } from '../composables/useAccountData'
 
 export default {
   name: "Navbar",
@@ -113,34 +111,25 @@ export default {
 
   data() {
     return {
-      userBalanceWei: null,
-      address: null,
-      chainId: null,
-      status: null,
-      config: null,
-      disconnect: null,
-      environment: 'standard',
+      web3: null,
+      accountData: null,
     }
   },
 
   computed: {
     isActivated() {
-      return this.status === 'connected'
+      return this.accountData?.isActivated || false
     },
 
     isFarcasterEnvironment() {
-      return this.environment === 'farcaster'
+      return this.web3?.environment === 'farcaster'
     },
 
     getBlockExplorerBaseUrl() {
       const blockExplorerBaseUrl = Object.fromEntries(
         chainsData.map((chain) => [chain.id, chain.blockExplorer]),
       )
-      return blockExplorerBaseUrl[this.chainId]
-    },
-
-    getCurrentNetworkName() {
-      return this.fetchNetworkName(this.chainId);
+      return blockExplorerBaseUrl[this.accountData?.chainId]
     },
 
     getNetworks() {
@@ -150,23 +139,6 @@ export default {
       }))
     },
 
-    getShortAddress() {
-      if (this.address) {
-        return this.address.slice(0, 6) + '...' + this.address.slice(-4);
-      }
-
-      return null
-    },
-
-    getUserBalance() {
-      if (this.userBalanceWei) {
-        const balance = formatEther(Number(this.userBalanceWei));
-        return parseFloat(Number(balance).toFixed(4));
-      }
-
-      return null;
-    },
-
     chainCurrency() {
       return Object.fromEntries(chainsData.map((chain) => [chain.id, chain.nativeCurrency]))
     },
@@ -174,23 +146,7 @@ export default {
 
   methods: {
     async changeNetwork(chainId) {
-      await switchChain(this.config, { chainId })
-    },
-
-    fetchNetworkName(networkId) {
-      const supportedChains = chainsData.map((chain) => ({
-        chainId: chain.id,
-        networkName: chain.name,
-      }))
-      const network = supportedChains.find((chain) => chain.chainId === Number(networkId))
-      return network ? network.networkName : 'Unsupported network'
-    },
-
-    async updateBalance() {
-      if (this.address) {
-        const userBalanceData = await getBalance(this.config, { address: this.address })
-        this.userBalanceWei = userBalanceData.value
-      }
+      await this.accountData.switchToNetwork(chainId)
     },
 
     async handleAddFavorite() {
@@ -218,70 +174,10 @@ export default {
     },
   },
 
-  watch: {
-    address: {
-      handler(newAddress) {
-        if (newAddress) {
-          this.updateBalance()
-        }
-      },
-      immediate: true,
-    },
-    chainId: {
-      handler() {
-        if (this.address) {
-          this.updateBalance()
-        }
-      },
-      immediate: true,
-    },
-  },
-
   mounted() {
-    // Initialize wagmi composables
-    const { address, chainId, status } = useAccount()
-    const config = useConfig()
-    const { disconnect } = useDisconnect()
-
-    // Initialize Web3 environment
-    const { environment } = useWeb3()
-
-    // Set up reactive watchers for wagmi state
-    this.$watch(
-      () => address.value,
-      (newAddress) => {
-        this.address = newAddress
-      },
-      { immediate: true },
-    )
-
-    this.$watch(
-      () => chainId.value,
-      (newChainId) => {
-        this.chainId = newChainId
-      },
-      { immediate: true },
-    )
-
-    this.$watch(
-      () => status.value,
-      (newStatus) => {
-        this.status = newStatus
-      },
-      { immediate: true },
-    )
-
-    this.$watch(
-      () => environment.value,
-      (newEnvironment) => {
-        this.environment = newEnvironment
-      },
-      { immediate: true },
-    )
-
-    // Store config and disconnect function
-    this.config = config
-    this.disconnect = disconnect
+    // Initialize composables
+    this.web3 = useWeb3()
+    this.accountData = useAccountData()
   },
 }
 </script>

@@ -63,7 +63,28 @@
             <small class="text-center mb-3 text-muted">Rainbow</small>
           </div>
 
-          <div class="card col-6 card-wallet" role="button" @click.stop="connectInjected">
+          <!-- Farcaster wallet - only show in Farcaster environment -->
+          <div 
+            v-if="environment === 'farcaster'"
+            class="card col-6 card-wallet" 
+            role="button" 
+            @click.stop="connectFarcaster"
+          >
+            <img
+              src="/img/wallets/farcaster.png"
+              class="card-img-top card-img-wallet"
+              alt="Farcaster"
+            />
+            <small class="text-center mb-3 text-muted">Farcaster</small>
+          </div>
+
+          <!-- Bifrost wallet - hide in Farcaster environment -->
+          <div 
+            v-if="environment !== 'farcaster'"
+            class="card col-6 card-wallet" 
+            role="button" 
+            @click.stop="connectInjected"
+          >
             <img
               src="/img/wallets/bifrost.png"
               class="card-img-top card-img-wallet"
@@ -88,7 +109,8 @@
 </template>
 
 <script>
-import { useChainId, useConnect } from '@wagmi/vue'
+import { useAccountData } from '@/composables/useAccountData'
+import { useWeb3 } from '@/composables/useWeb3'
 
 export default {
   name: 'ConnectButton',
@@ -118,11 +140,6 @@ export default {
 
     async connectInjected() {
       try {
-        console.log('Connecting with injected wallet...')
-        console.log('Connectors available:', this.connectors)
-        console.log('Selected connector:', this.connectors[0])
-        console.log('Chain ID:', this.chainId)
-
         await this.connect({ connector: this.connectors[0], chainId: this.chainId })
         this.closeModal()
       } catch (error) {
@@ -148,18 +165,26 @@ export default {
         console.error('Failed to connect WalletConnect:', error)
       }
     },
+
+    async connectFarcaster() {
+      try {
+        await this.connect({ connector: this.connectors[3], chainId: this.chainId })
+        this.closeModal()
+      } catch (error) {
+        console.error('Failed to connect Farcaster wallet:', error)
+      }
+    },
   },
 
   setup() {
-    const chainId = useChainId()
-    const { connect, connectors, error, status } = useConnect()
+    const { connect, connectors, chainId } = useAccountData()
+    const { environment } = useWeb3()
 
     return {
-      chainId,
       connect,
       connectors,
-      error,
-      status,
+      chainId,
+      environment,
     }
   },
 }
