@@ -73,7 +73,6 @@ export default defineNuxtConfig({
         { chainId: 8453, networkName: 'Base' },
         { chainId: 42161, networkName: 'Arbitrum' },
       ],
-      wcProjectId: process.env.NUXT_PUBLIC_WC_PROJECT_ID,
     }
   }
 })
