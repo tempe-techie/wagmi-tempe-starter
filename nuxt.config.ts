@@ -3,13 +3,58 @@ import { defineNuxtConfig } from 'nuxt/config'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ['@wagmi/vue/nuxt'],
+  modules: ['@wagmi/vue/nuxt', '@vite-pwa/nuxt'],
   compatibilityDate: '2025-06-21',
   vite: {
     server: {
-      host: '0.0.0.0',
       allowedHosts: true
     }
+  },
+  pwa: {
+    registerType: 'autoUpdate',
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+    },
+    client: {
+      installPrompt: true,
+    },
+    devOptions: {
+      enabled: true,
+      suppressWarnings: true,
+      navigateFallbackAllowlist: [/^\/$/],
+      type: 'module',
+    },
+    includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+    manifest: {
+      name: 'Wagmi Tempe Starter',
+      short_name: 'Wagmi Tempe',
+      description: 'A starter template for Wagmi Nuxt projects',
+      theme_color: '#ffffff',
+      background_color: '#ffffff',
+      display: 'standalone',
+      orientation: 'portrait',
+      scope: '/',
+      start_url: '/',
+      icons: [
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable',
+        },
+      ],
+    },
   },
   app: {
     head: {
@@ -37,6 +82,11 @@ export default defineNuxtConfig({
           // Custom
           rel: 'stylesheet',
           href: '/css/custom.css',
+        },
+        {
+          // PWA Manifest
+          rel: 'manifest',
+          href: '/manifest.webmanifest',
         },
       ],
       script: [
