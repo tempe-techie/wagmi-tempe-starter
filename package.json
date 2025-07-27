@@ -8,15 +8,13 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "generate-pwa-icons": "node scripts/generate-pwa-icons.js"
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "@farcaster/miniapp-sdk": "latest",
     "@farcaster/miniapp-wagmi-connector": "latest",
     "@popperjs/core": "^2.11.8",
     "@tanstack/vue-query": ">=5.83.0",
-    "@vite-pwa/nuxt": "^1.0.4",
     "@wagmi/vue": "latest",
     "nuxt": "^3.17.7",
     "viem": "latest",
@@ -27,8 +25,5 @@
   },
   "overrides": {
     "uuid": "^11.1.0"
-  },
-  "devDependencies": {
-    "sharp": "^0.34.3"
   }
 }
