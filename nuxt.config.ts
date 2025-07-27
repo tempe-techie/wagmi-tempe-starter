@@ -2,7 +2,7 @@ import { defineNuxtConfig } from 'nuxt/config'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  ssr: false, // full static site generation
   modules: ['@wagmi/vue/nuxt', '@vite-pwa/nuxt'],
   compatibilityDate: '2025-06-21',
   vite: {
