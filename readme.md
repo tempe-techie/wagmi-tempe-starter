@@ -6,6 +6,88 @@ A web3 starter template which uses the following stack:
 - Wagmi
 - Farcaster (optional, suitable for mini apps)
 - Bootstrap
+- PWA (Progressive Web App) support
+
+## PWA (Progressive Web App) Setup
+
+This template includes full PWA support out of the box! 🚀
+
+### What's Included
+
+- ✅ **Service Worker**: Automatic caching and offline support
+- ✅ **Web App Manifest**: App metadata and installation prompts
+- ✅ **PWA Icons**: Multiple sizes for different devices
+- ✅ **Install Prompt**: Users can install your app to their home screen
+- ✅ **Offline Support**: Basic offline functionality
+
+### Generate PWA icons
+
+#### Option A: Automated Script (Recommended)
+
+The script requires your logo to be at `public/img/logo.png` and will generate all required PWA icon sizes automatically.
+
+Run the script:
+
+```bash
+# Generate icons from your logo (requires logo at public/img/logo.png)
+npm run generate-pwa-icons
+```
+
+This script will replace the placeholder icons in the `public/` directory:
+
+```bash
+# Replace these files with your own icons:
+public/pwa-192x192.png    # 192x192 icon
+public/pwa-512x512.png    # 512x512 icon  
+public/favicon.ico        # Favicon
+public/apple-touch-icon.png # Apple touch icon
+```
+
+#### Option B: Manual Creation
+1. Open your logo in an image editor (Photoshop, GIMP, Figma, etc.)
+2. Export at each required size
+3. Save with the correct filenames in `public/`
+
+**Icon Requirements:**
+- **pwa-192x192.png**: 192x192 pixels (minimum for Android)
+- **pwa-512x512.png**: 512x512 pixels (recommended for Android)
+- **favicon.ico**: 16x16, 32x32, 48x48 pixels
+- **apple-touch-icon.png**: 180x180 pixels (for iOS)
+
+**Pro Tips:**
+- Ensure your icons have good contrast and are recognizable at small sizes
+- Test your icons on both light and dark backgrounds
+- Keep icon files under 1MB for better performance
+
+### Update PWA Configuration
+
+Edit `nuxt.config.ts` to customize your PWA settings:
+
+```typescript
+pwa: {
+  manifest: {
+    name: 'Your App Name',           // Change this
+    short_name: 'Your App',          // Change this
+    description: 'Your app description', // Change this
+    theme_color: '#your-color',      // Change this
+    background_color: '#your-color', // Change this
+  },
+}
+```
+
+### Test Your PWA
+
+1. **Build and serve your app:**
+   ```bash
+   npm run build
+   npm run preview
+   ```
+
+2. **Test PWA features:**
+   - Open Chrome DevTools → Application tab
+   - Check "Manifest" and "Service Workers" sections
+   - Look for the install prompt in the address bar
+
 
 ## How to connect your Safe to the app
 
